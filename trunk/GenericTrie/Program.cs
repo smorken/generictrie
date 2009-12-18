@@ -19,7 +19,7 @@ namespace GenericTrie
 
             List<char[]> matches = myTrie.GetMatchingKeys("?b?");
             List<int> MatchingValues = myTrie.GetMatchingValues("ab?");
-            List<int> values = myTrie["???"];
+            List<int> values = myTrie["a??"];
         }
         static void ClassifierTrie(List<Classifier> Classifiers)
         {
