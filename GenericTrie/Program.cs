@@ -26,7 +26,7 @@ namespace GenericTrie
             Trie<ClassifierSet, ClassifierValue, List<Inventory>> InventoryLookup = new Trie<ClassifierSet, ClassifierValue, List<Inventory>>();
             Trie<ClassifierSet, ClassifierValue, List<Inventory>>.WildCard = new ClassifierValue() { Value = "?" };
             int InventoryID = 0;
-            for (int i = 0; i < 100000; i++)
+            for (int i = 0; i < 1000000; i++)
             {
                 ClassifierSet RandomClassifierSet = ClassifierSet.GetRandomClassifierSet(Classifiers);
                 if (!InventoryLookup.ContainsKey(RandomClassifierSet))
@@ -38,19 +38,67 @@ namespace GenericTrie
                     InventoryLookup[RandomClassifierSet][0].Add(new Inventory(InventoryID++, RandomClassifierSet));
                 }
             }
-            for (int i = 0; i < 100000; i++)
+            for (int i = 0; i < 1000000; i++)
             {
                 ClassifierSet RandomClassifierSet = ClassifierSet.GetRandomClassifierSet(Classifiers);
                 bool contained = InventoryLookup.ContainsKey(RandomClassifierSet);
+                List<List<Inventory>> li = InventoryLookup[RandomClassifierSet];
+            }
+        }
+        static void IntTrie()
+        {
+            Random rnd = new Random();
+            Trie<int[], int, List<Inventory>> intTrie = new Trie<int[], int, List<Inventory>>();
+            Trie<int[], int, List<Inventory>>.WildCard = -1;
+            int InventoryID = 0;
+            for (int i = 0; i < 1000000; i++)
+            {
+                int[] RandomIntegers = new int[4];
+                RandomIntegers[0] = rnd.Next(0, 10);
+                RandomIntegers[1] = rnd.Next(0, 20);
+                RandomIntegers[1] = rnd.Next(0, 3);
+                RandomIntegers[3] = rnd.Next(0, 1000000);
+                if (!intTrie.ContainsKey(RandomIntegers))
+                {
+                    intTrie.Add(RandomIntegers, new List<Inventory>() { new Inventory(InventoryID++, RandomIntegers) });
+                }
+                else
+                {
+                    intTrie[RandomIntegers][0].Add(new Inventory(InventoryID++, RandomIntegers));
+                }
+
+            } 
+            for (int i = 0; i < 1000000; i++)
+            {
+                int[] RandomIntegers = new int[4];
+                RandomIntegers[0] = rnd.Next(0, 10);
+                RandomIntegers[1] = rnd.Next(0, 20);
+                RandomIntegers[1] = rnd.Next(0, 3);
+                RandomIntegers[3] = rnd.Next(0, 1000000);
+                bool contained = intTrie.ContainsKey(RandomIntegers);
+                List<List<Inventory>> li = intTrie[RandomIntegers];
             }
         }
         static void Main(string[] args)
         {
             BasicTrie();
 
-            List<Classifier> Classifiers = BuildClassifiers();
+           // List<Classifier> Classifiers = BuildClassifiers();
 
-            ClassifierTrie(Classifiers);
+            DateTime t1, t2;
+
+            //t1 = DateTime.Now;
+            //ClassifierTrie(Classifiers);
+            //t2 = DateTime.Now;
+            //TimeSpan classifierTime = t2 - t1;
+            //double classifierTimeSeconds = classifierTime.TotalMilliseconds;
+
+            t1 = DateTime.Now;
+            IntTrie();
+            t2 = DateTime.Now;
+            TimeSpan intTime = t2 - t1;
+            double intTimeSeconds = intTime.TotalMilliseconds;
+
         }
         static List<Classifier> BuildClassifiers()
         {
