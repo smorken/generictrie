@@ -9,8 +9,9 @@ namespace GenericTrie
     /// <summary>
     /// A Generic Trie implementation (both key and value are generic).  A Wilcard token may be set to select many nodes from the Trie.
     /// </summary>
-    /// <typeparam name="TKey">The type of the key. Eg. "string".  The key must implement the IComparable(TKey) interface.</typeparam>
-    /// <typeparam name="TToken">The type of the tokens that make up the key. For a string this is "char", ie a string is made up of characters.</typeparam>
+    /// <typeparam name="TKey">The type of the key. Eg. "string".  The key must implement the IEnumerable(TToken) interface.</typeparam>
+    /// <typeparam name="TToken">The type of the tokens that make up the key. For a string this is "char", ie a string is made up of characters.
+    /// must implement IComparable(TToken), and IEquatable(TToken)</typeparam>
     /// <typeparam name="TValue">The type of the values associated with the key.</typeparam>
     public class Trie<TKey, TToken, TValue>
         where TKey : IEnumerable<TToken>

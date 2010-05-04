@@ -72,10 +72,16 @@ namespace GenericTrie
     {
         public int InventoryID = 0;
         public ClassifierSet ClassifierSet;
+        public int[] ClassifierIntegers;
         public Inventory(int ID, ClassifierSet set)
         {
             this.InventoryID = ID;
             this.ClassifierSet = set;
+        }
+        public Inventory(int ID, int[] ClassifierIntegers)
+        {
+            this.InventoryID = ID;
+            this.ClassifierIntegers = ClassifierIntegers;
         }
         public override string ToString()
         {
