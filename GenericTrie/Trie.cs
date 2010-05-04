@@ -135,6 +135,11 @@ namespace GenericTrie
                         TrieNode MatchingChild = GetChild(newKey[Index]);
                         MatchingChild.Add(Value, newKey, Index + 1);
                     }
+                    else
+                    {
+                        TrieNode matchingChild = GetChild(newKey[Index]);
+                        matchingChild.Value = Value;
+                    }
                 }
             }
             #endregion
