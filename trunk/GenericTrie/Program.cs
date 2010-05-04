@@ -16,10 +16,10 @@ namespace GenericTrie
             myTrie.Add("abd", 2);
             myTrie.Add("abe", 3);
             myTrie.Add("dbf", -999);
-
+            myTrie.Add("ab", -999);
             List<char[]> matches = myTrie.GetMatchingKeys("?b?");
             List<int> MatchingValues = myTrie.GetMatchingValues("ab?");
-            List<int> values = myTrie["a??"];
+            List<int> values = myTrie["ab"];
         }
         static void ClassifierTrie(List<Classifier> Classifiers)
         {
@@ -93,11 +93,11 @@ namespace GenericTrie
             //TimeSpan classifierTime = t2 - t1;
             //double classifierTimeSeconds = classifierTime.TotalMilliseconds;
 
-            t1 = DateTime.Now;
-            IntTrie();
-            t2 = DateTime.Now;
-            TimeSpan intTime = t2 - t1;
-            double intTimeSeconds = intTime.TotalMilliseconds;
+            //t1 = DateTime.Now;
+            //IntTrie();
+            //t2 = DateTime.Now;
+            //TimeSpan intTime = t2 - t1;
+            //double intTimeSeconds = intTime.TotalMilliseconds;
 
         }
         static List<Classifier> BuildClassifiers()
