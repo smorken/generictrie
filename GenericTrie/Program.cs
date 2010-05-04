@@ -16,10 +16,14 @@ namespace GenericTrie
             myTrie.Add("abd", 2);
             myTrie.Add("abe", 3);
             myTrie.Add("dbf", -999);
-            myTrie.Add("ab", -999);
+            myTrie.Add("abcd", -9999);
+            myTrie.Add("ab", -999999);
+            myTrie.Add("asdfab;kna;slkdnga;lskgna;slgkdn", -1);
+
             List<char[]> matches = myTrie.GetMatchingKeys("?b?");
             List<int> MatchingValues = myTrie.GetMatchingValues("ab?");
             List<int> values = myTrie["ab"];
+            List<int> values2 = myTrie["????"];
         }
         static void ClassifierTrie(List<Classifier> Classifiers)
         {

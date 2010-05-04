@@ -33,22 +33,39 @@ namespace GenericTrie
         }
         public List<TToken[]> GetMatchingKeys(TKey Key)
         {
-            return Root.GetMatchingKeys(Key.ToArray());
+            TToken[] keyArray = Key.ToArray();
+            if (Root.Contains(keyArray))
+            {
+                return Root.GetMatchingKeys(Key.ToArray());
+            }
+            throw new ArgumentException("Key does not exist in the trie");
         }
         public List<TValue> this[TKey Key]
         {
             get
             {
-                return Root.GetMatchingValues(Key.ToArray());
+                TToken[] keyArray = Key.ToArray();
+                if (Root.Contains(keyArray))
+                {
+                    return Root.GetMatchingValues(keyArray);
+                }
+                else
+                {
+                    throw new ArgumentException("That key does not exist in the Trie");
+                }
             }
         }
         public List<TValue> GetMatchingValues(TKey Key)
         {
-            return Root.GetMatchingValues(Key.ToArray());
+            TToken[] keyArray = Key.ToArray();
+            if (Root.Contains(keyArray))
+            {
+                return Root.GetMatchingValues(keyArray);
+            }
+            throw new ArgumentException("Key does not exist in the trie");
         }
         private class TrieNode
         {
-            
             public TValue Value;
             public List<TToken> Prefix;
             public TToken Key;
@@ -100,6 +117,7 @@ namespace GenericTrie
                     }
                 }
                 Add(Value, Key, 0);
+
             }
             private void Add(TValue Value, TToken[] newKey, int Index)
             {
@@ -139,6 +157,7 @@ namespace GenericTrie
                     {
                         TrieNode matchingChild = GetChild(newKey[Index]);
                         matchingChild.Value = Value;
+                        matchingChild.Terminal = true;
                     }
                 }
             }
@@ -153,7 +172,10 @@ namespace GenericTrie
             {
                 if (Index == Keys.Length)
                 {
-                    Values.Add(this.Value);
+                    if (this.Terminal)
+                    {
+                        Values.Add(this.Value);
+                    }
                     return Values;
                 }
                 if (WildCard != null && Keys[Index].CompareTo(WildCard) == 0)
