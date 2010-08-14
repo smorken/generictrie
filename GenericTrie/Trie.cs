@@ -11,11 +11,12 @@ namespace GenericTrie
     /// </summary>
     /// <typeparam name="TKey">The type of the key. Eg. "string".  The key must implement the IEnumerable(TToken) interface.</typeparam>
     /// <typeparam name="TToken">The type of the tokens that make up the key. For a string this is "char", ie a string is made up of characters.
-    /// must implement IComparable(TToken), and IEquatable(TToken)</typeparam>
+    /// must implement IComparable(TToken)</typeparam>
     /// <typeparam name="TValue">The type of the values associated with the key.</typeparam>
     public class Trie<TKey, TToken, TValue>
         where TKey : IEnumerable<TToken>
-        where TToken : IComparable<TToken>, IEquatable<TToken>
+        where TToken : IComparable<TToken>
+
     {
         /// <summary>
         /// The number of nodes in the trie
@@ -31,14 +32,22 @@ namespace GenericTrie
         {
             return Root.Contains(Key.ToArray());
         }
+        /// <summary>
+        /// Return the keys 
+        /// </summary>
+        /// <param name="Key">The collection of keys</param>
+        /// <returns></returns>
         public List<TToken[]> GetMatchingKeys(TKey Key)
         {
             TToken[] keyArray = Key.ToArray();
             if (Root.Contains(keyArray))
             {
-                return Root.GetMatchingKeys(Key.ToArray());
+                return Root.GetMatchingKeys(keyArray);
             }
-            throw new ArgumentException("Key does not exist in the trie");
+            else
+            {
+                return null;
+            }
         }
         public List<TValue> this[TKey Key]
         {
@@ -66,18 +75,43 @@ namespace GenericTrie
         }
         private class TrieNode
         {
-            public TValue Value;
-            public List<TToken> Prefix;
-            public TToken Key;
-            public Dictionary<TToken, TrieNode> Children = new Dictionary<TToken, TrieNode>();
-            public bool Terminal = false;
+            private TValue Value;
+            private TrieNode Parent;
+            private TToken Key;
+            private IDictionary<TToken, TrieNode> Children;
+            private bool Terminal = false;
+            public List<TToken> Prefix
+            {
+                get
+                {
+                    return GetPrefix();
+                }
+            }
             public TrieNode()
             {
+                Children = new SortedList<TToken, TrieNode>();
                 TotalNodes++;//update the static node count 
             }
+
             public override string ToString()
             {
                 return Key.ToString();
+            }
+            public List<TToken> GetPrefix()
+            {
+
+                if (Parent != null)
+                {
+                    Stack<TToken> prefix = new Stack<TToken>();
+                    TrieNode parent = this.Parent;
+                    while (parent != null)
+                    {
+                        prefix.Push(parent.Key);
+                        parent = parent.Parent;
+                    }
+                    return prefix.ToList();
+                }
+                return null;
             }
             #region Node functions
             /// <summary>
@@ -126,14 +160,9 @@ namespace GenericTrie
                 {
                     TrieNode newNode = new TrieNode()
                     {
-                        Prefix = new List<TToken>(),
+                        Parent = this,
                         Key = newKey[Index],
                     };
-                    if (this.Prefix != null)
-                    {
-                        newNode.Prefix.AddRange(Prefix);
-                        newNode.Prefix.Add(Key);
-                    }
 
                     Children.Add(newNode.Key, newNode);
                     if (Index < newKey.Length - 1)
@@ -206,7 +235,10 @@ namespace GenericTrie
             {
                 if (Index == Keys.Length)
                 {
-                    matches.Add(Keys);
+                    if (this.Terminal)
+                    {
+                        matches.Add(Keys);
+                    }
                     return matches;
                 }
                 if (WildCard != null && Keys[Index].CompareTo(WildCard) == 0)
