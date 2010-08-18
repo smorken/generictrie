@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.30729</ProductVersion>
+    <ProductVersion>9.0.21022</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{A0D111A2-A707-46BA-85D2-EB3AFF874DF6}</ProjectGuid>
     <OutputType>Exe</OutputType>
@@ -45,9 +45,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="LinearAssociativeArray.cs" />
+    <Compile Include="NodeContainer.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TestClasses.cs" />
+    <Compile Include="Tests\CompoundClass.cs" />
+    <Compile Include="Tests\CompoundClassTrieTest.cs" />
+    <Compile Include="Tests\IntTrieTest.cs" />
+    <Compile Include="Tests\StringTrieTest.cs" />
+    <Compile Include="Tests\Test.cs" />
     <Compile Include="Trie.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
