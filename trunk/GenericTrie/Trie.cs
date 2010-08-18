@@ -16,16 +16,41 @@ namespace GenericTrie
     public class Trie<TKey, TToken, TValue>
         where TKey : IEnumerable<TToken>
         where TToken : IComparable<TToken>
-
     {
+        public Trie(NodeContainerType ContainerType)
+        {
+            Root = new TrieNode(this);// (ContainerType);
+            this.ContainerType = ContainerType;
+        }
+        public Trie()
+        {
+            Root = new TrieNode(this);
+            this.ContainerType = NodeContainerType.SortedDictionary;
+        }
+        public NodeContainerType ContainerType { get; private set; }
         /// <summary>
         /// The number of nodes in the trie
         /// </summary>
-        public static int TotalNodes { get; private set; }
-        public static TToken WildCard;
-        private TrieNode Root = new TrieNode();
+        public int TotalNodes { get; private set; }
+        public bool WildCardIsSet { get; private set; }
+        private TToken wildcard;
+        public TToken WildCard
+        {
+            get
+            {
+                return wildcard;
+            }
+            set
+            {
+                wildcard = value;
+                WildCardIsSet = true;
+            }
+        }
+
+        private TrieNode Root;
         public void Add(TKey Key, TValue Value)
         {
+
             Root.Add(Value, Key.ToArray());
         }
         public bool ContainsKey(TKey Key)
@@ -38,8 +63,9 @@ namespace GenericTrie
         /// <param name="Key">The collection of keys</param>
         /// <returns></returns>
         public List<TToken[]> GetMatchingKeys(TKey Key)
-        {
+        {           
             TToken[] keyArray = Key.ToArray();
+          
             if (Root.Contains(keyArray))
             {
                 return Root.GetMatchingKeys(keyArray);
@@ -71,15 +97,41 @@ namespace GenericTrie
             {
                 return Root.GetMatchingValues(keyArray);
             }
-            throw new ArgumentException("Key does not exist in the trie");
+            return null;
+        }
+        public TValue GetValue(TKey key)
+        {
+            if (WildCardIsSet)
+            {
+                if (key.Contains(WildCard))
+                {
+                    throw new ArgumentException("Key may not contain wildcard");
+                }
+            }
+
+            return Root.GetMatchingValues(key.ToArray()).First();
+
+        }
+        public List<TToken[]> PrefixSearch()
+        {
+            throw new NotImplementedException();
+        }
+        public List<TToken[]> SuffixSearch()
+        {
+            throw new NotImplementedException();
         }
         private class TrieNode
         {
+            private Trie<TKey, TToken, TValue> container;
             private TValue Value;
             private TrieNode Parent;
             private TToken Key;
-            private IDictionary<TToken, TrieNode> Children;
-            private bool Terminal = false;
+            public IDictionary<TToken, TrieNode> Children;
+            public bool Terminal
+            {
+                get;
+                private set;
+            }
             public List<TToken> Prefix
             {
                 get
@@ -87,16 +139,38 @@ namespace GenericTrie
                     return GetPrefix();
                 }
             }
-            public TrieNode()
+            public TrieNode(Trie<TKey, TToken, TValue> container)
             {
-                Children = new SortedList<TToken, TrieNode>();
-                TotalNodes++;//update the static node count 
-            }
+                this.container = container;
 
+
+                this.container.TotalNodes++;//update the static node count 
+            }
+            private IDictionary<TToken, TrieNode> CreateChildContainer()
+            {
+                IDictionary<TToken, TrieNode> children = null;
+                switch (container.ContainerType)
+                {
+                    case NodeContainerType.Dictionary:
+                        children = new Dictionary<TToken, TrieNode>();
+                        break;
+                    case NodeContainerType.LinearAssociativeArray:
+                        children = new LinearAssociativeArray<TToken, TrieNode>();
+                        break;
+                    case NodeContainerType.SortedDictionary:
+                        children = new SortedDictionary<TToken, TrieNode>();
+                        break;
+                    case NodeContainerType.SortedList:
+                        children = new SortedList<TToken, TrieNode>();
+                        break;
+                }
+                return children;
+            }
             public override string ToString()
             {
                 return Key.ToString();
             }
+
             public List<TToken> GetPrefix()
             {
 
@@ -104,7 +178,7 @@ namespace GenericTrie
                 {
                     Stack<TToken> prefix = new Stack<TToken>();
                     TrieNode parent = this.Parent;
-                    while (parent != null)
+                    while (parent.Parent != null)
                     {
                         prefix.Push(parent.Key);
                         parent = parent.Parent;
@@ -121,7 +195,14 @@ namespace GenericTrie
             /// <returns>True if the node contains the chil, otherwise false</returns>
             private bool ContainsChild(TToken Value)
             {
-                return Children.ContainsKey(Value);
+                if (Children == null)
+                    return false;
+
+                else if (Children.ContainsKey(Value))
+                {
+                    return true;
+                }
+                return false;
             }
             /// <summary>
             /// Get a child node of this node using its value to find it
@@ -130,21 +211,23 @@ namespace GenericTrie
             /// <returns>The node</returns>
             private TrieNode GetChild(TToken Value)
             {
-                if (Children.ContainsKey(Value))
+                if (Children != null && Children.ContainsKey(Value))
                 {
                     return Children[Value];
                 }
                 return null;
             }
+
+
             #endregion
             #region Insertion
             public void Add(TValue Value, params TToken[] Key)
             {
-                if (WildCard != null)
+                if (container.WildCardIsSet)
                 {
                     foreach (TToken token in Key)
                     {
-                        if (token.CompareTo(WildCard) == 0)
+                        if (token.CompareTo(container.WildCard) == 0)
                         {
                             throw new ArgumentException("Wildcards may not be inserted to the Trie");
                         }
@@ -155,14 +238,18 @@ namespace GenericTrie
             }
             private void Add(TValue Value, TToken[] newKey, int Index)
             {
-                
+
                 if (this.Children == null || !this.ContainsChild(newKey[Index]))
                 {
-                    TrieNode newNode = new TrieNode()
+                    TrieNode newNode = new TrieNode(this.container)//(this.Container)
                     {
                         Parent = this,
                         Key = newKey[Index],
                     };
+                    if (this.Children == null)
+                    {
+                        this.Children = CreateChildContainer();
+                    }
 
                     Children.Add(newNode.Key, newNode);
                     if (Index < newKey.Length - 1)
@@ -179,6 +266,7 @@ namespace GenericTrie
                 {
                     if (Index < newKey.Length - 1)
                     {
+
                         TrieNode MatchingChild = GetChild(newKey[Index]);
                         MatchingChild.Add(Value, newKey, Index + 1);
                     }
@@ -207,9 +295,9 @@ namespace GenericTrie
                     }
                     return Values;
                 }
-                if (WildCard != null && Keys[Index].CompareTo(WildCard) == 0)
+                if (Children != null && container.WildCardIsSet && Keys[Index].CompareTo(container.WildCard) == 0)
                 {
-                    foreach (KeyValuePair<TToken,TrieNode> value in Children)
+                    foreach (KeyValuePair<TToken, TrieNode> value in Children)
                     {
                         TToken[] TestValues = new TToken[Keys.Length];
                         Keys.CopyTo(TestValues, 0);
@@ -224,6 +312,7 @@ namespace GenericTrie
                         return GetChild(Keys[Index]).GetMatchingValues(Keys, Index + 1, Values);
                     }
                 }
+
                 return Values;
             }
             public List<TToken[]> GetMatchingKeys(TToken[] Keys)
@@ -241,9 +330,9 @@ namespace GenericTrie
                     }
                     return matches;
                 }
-                if (WildCard != null && Keys[Index].CompareTo(WildCard) == 0)
+                if (Children != null && container.WildCardIsSet && Keys[Index].CompareTo(container.WildCard) == 0)
                 {
-                    foreach (KeyValuePair<TToken,TrieNode> value in Children)
+                    foreach (KeyValuePair<TToken, TrieNode> value in Children)
                     {
                         TToken[] TestValues = new TToken[Keys.Length];
                         Keys.CopyTo(TestValues, 0);
@@ -258,8 +347,11 @@ namespace GenericTrie
                         return GetChild(Keys[Index]).GetMatchingKeys(Keys, Index + 1, matches);
                     }
                 }
+
                 return matches;
             }
+
+
             #endregion
             #region Content Checking
             /// <summary>
@@ -283,10 +375,11 @@ namespace GenericTrie
                 {
                     return true;
                 }
-                if (WildCard != null && Values[Index].CompareTo(WildCard) == 0)
+
+                if (Children != null && container.WildCardIsSet && Values[Index].CompareTo(container.WildCard) == 0)
                 {
 
-                    foreach (KeyValuePair<TToken,TrieNode> value in Children)
+                    foreach (KeyValuePair<TToken, TrieNode> value in Children)
                     {
                         TToken[] TestValues = new TToken[Values.Length];
                         Values.CopyTo(TestValues, 0);
@@ -305,6 +398,7 @@ namespace GenericTrie
                         return GetChild(Values[Index]).Contains(Values, Index + 1);
                     }
                 }
+
                 return false;
             }
             #endregion
