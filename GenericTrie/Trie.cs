@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.Linq;
 using System.Text;
 
@@ -17,16 +18,6 @@ namespace GenericTrie
         where TKey : IEnumerable<TToken>
         where TToken : IComparable<TToken>
     {
-        public Trie(NodeContainerType ContainerType)
-        {
-            Root = new TrieNode(this);// (ContainerType);
-            this.ContainerType = ContainerType;
-        }
-        public Trie()
-        {
-            Root = new TrieNode(this);
-            this.ContainerType = NodeContainerType.SortedDictionary;
-        }
         public NodeContainerType ContainerType { get; private set; }
         /// <summary>
         /// The number of nodes in the trie
@@ -48,6 +39,20 @@ namespace GenericTrie
         }
 
         private TrieNode Root;
+
+        public Trie(NodeContainerType ContainerType)
+        {
+
+            Root = new TrieNode(this);// (ContainerType);
+            this.ContainerType = ContainerType;
+        }
+        public Trie()
+        {
+
+            Root = new TrieNode(this);
+            this.ContainerType = NodeContainerType.SortedDictionary;
+        }
+
         public void Add(TKey Key, TValue Value)
         {
 
@@ -63,12 +68,12 @@ namespace GenericTrie
         /// <param name="Key">The collection of keys</param>
         /// <returns></returns>
         public List<TToken[]> GetMatchingKeys(TKey Key)
-        {           
+        {
             TToken[] keyArray = Key.ToArray();
-          
+
             if (Root.Contains(keyArray))
             {
-                return Root.GetMatchingKeys(keyArray);
+                return Root.GetMatchingKeys(keyArray, false);
             }
             else
             {
@@ -82,7 +87,7 @@ namespace GenericTrie
                 TToken[] keyArray = Key.ToArray();
                 if (Root.Contains(keyArray))
                 {
-                    return Root.GetMatchingValues(keyArray);
+                    return Root.GetMatchingValues(keyArray, false);
                 }
                 else
                 {
@@ -95,7 +100,7 @@ namespace GenericTrie
             TToken[] keyArray = Key.ToArray();
             if (Root.Contains(keyArray))
             {
-                return Root.GetMatchingValues(keyArray);
+                return Root.GetMatchingValues(keyArray, false);
             }
             return null;
         }
@@ -109,12 +114,16 @@ namespace GenericTrie
                 }
             }
 
-            return Root.GetMatchingValues(key.ToArray()).First();
+            return Root.GetMatchingValues(key.ToArray(), false).First();
 
         }
-        public List<TToken[]> PrefixSearch()
+        public List<TToken[]> PrefixKeySearch(TKey Prefix)
         {
-            throw new NotImplementedException();
+            return Root.GetMatchingKeys(Prefix.ToArray(), true);
+        }
+        public List<TValue> PrefixValueSearch(TKey Prefix)
+        {
+            return Root.GetMatchingValues(Prefix.ToArray(), true);
         }
         public List<TToken[]> SuffixSearch()
         {
@@ -137,6 +146,15 @@ namespace GenericTrie
                 get
                 {
                     return GetPrefix();
+                }
+            }
+            public List<TToken> Word
+            {
+                get
+                {
+                    List<TToken> word = GetPrefix();
+                    word.Add(this.Key);
+                    return word;
                 }
             }
             public TrieNode(Trie<TKey, TToken, TValue> container)
@@ -280,18 +298,33 @@ namespace GenericTrie
             }
             #endregion
             #region Retrieval
-            public List<TValue> GetMatchingValues(TToken[] Keys)
+            public List<TValue> GetMatchingValues(TToken[] Keys, bool PrefixSearch)
             {
                 List<TValue> Values = new List<TValue>();
-                return GetMatchingValues(Keys, 0, Values);
+                return GetMatchingValues(Keys, 0, Values, PrefixSearch);
             }
-            private List<TValue> GetMatchingValues(TToken[] Keys, int Index, List<TValue> Values)
+            private List<TValue> GetMatchingValues(TToken[] Keys, int Index, List<TValue> Values, bool PrefixSearch)
             {
                 if (Index == Keys.Length)
                 {
                     if (this.Terminal)
                     {
-                        Values.Add(this.Value);
+                        if (!PrefixSearch)
+                        {
+                            Values.Add(this.Value);
+                        }
+                        else
+                        {
+                            Values.Add(this.Value);
+                            return Values;
+                        }
+                    }
+                    if (PrefixSearch)
+                    {
+                        foreach (KeyValuePair<TToken, TrieNode> value in Children)
+                        {
+                            value.Value.GetMatchingValues(Keys, Index, Values, PrefixSearch);
+                        }
                     }
                     return Values;
                 }
@@ -302,31 +335,46 @@ namespace GenericTrie
                         TToken[] TestValues = new TToken[Keys.Length];
                         Keys.CopyTo(TestValues, 0);
                         TestValues[Index] = value.Key;
-                        GetMatchingValues(TestValues, Index, Values);
+                        GetMatchingValues(TestValues, Index, Values, PrefixSearch);
                     }
                 }
                 else
                 {
                     if (this.ContainsChild(Keys[Index]))
                     {
-                        return GetChild(Keys[Index]).GetMatchingValues(Keys, Index + 1, Values);
+                        return GetChild(Keys[Index]).GetMatchingValues(Keys, Index + 1, Values, PrefixSearch);
                     }
                 }
 
                 return Values;
             }
-            public List<TToken[]> GetMatchingKeys(TToken[] Keys)
+            public List<TToken[]> GetMatchingKeys(TToken[] Keys, bool PrefixSearch)
             {
                 List<TToken[]> matches = new List<TToken[]>();
-                return GetMatchingKeys(Keys, 0, matches);
+                return GetMatchingKeys(Keys, 0, matches, PrefixSearch);
             }
-            private List<TToken[]> GetMatchingKeys(TToken[] Keys, int Index, List<TToken[]> matches)
+            private List<TToken[]> GetMatchingKeys(TToken[] Keys, int Index, List<TToken[]> matches, bool PrefixSearch)
             {
                 if (Index == Keys.Length)
                 {
                     if (this.Terminal)
                     {
-                        matches.Add(Keys);
+                        if (!PrefixSearch)
+                        {
+                            matches.Add(Keys);
+                        }
+                        else
+                        {
+                            matches.Add(this.Word.ToArray());
+                            return matches;
+                        }
+                    }
+                    if (PrefixSearch)
+                    {
+                        foreach (KeyValuePair<TToken, TrieNode> value in Children)
+                        {
+                            value.Value.GetMatchingKeys(Keys, Index, matches, PrefixSearch);
+                        }
                     }
                     return matches;
                 }
@@ -337,20 +385,19 @@ namespace GenericTrie
                         TToken[] TestValues = new TToken[Keys.Length];
                         Keys.CopyTo(TestValues, 0);
                         TestValues[Index] = value.Key;
-                        GetMatchingKeys(TestValues, Index, matches);
+                        GetMatchingKeys(TestValues, Index, matches, PrefixSearch);
                     }
                 }
                 else
                 {
                     if (this.ContainsChild(Keys[Index]))
                     {
-                        return GetChild(Keys[Index]).GetMatchingKeys(Keys, Index + 1, matches);
+                        return GetChild(Keys[Index]).GetMatchingKeys(Keys, Index + 1, matches, PrefixSearch);
                     }
                 }
 
                 return matches;
             }
-
 
             #endregion
             #region Content Checking
