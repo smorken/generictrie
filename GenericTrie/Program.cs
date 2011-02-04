@@ -18,6 +18,8 @@ namespace GenericTrie
             Trie.Add("ACED", 4);
             Trie.Add("BCED", 4);
             Trie.WildCard = '?';
+            bool derrp = Trie.ContainsKey("AB");
+
             List<int> value = Trie["?B??"];
             List<char[]> value2 = Trie.PrefixKeySearch("???D");
             List<int> vla = Trie.PrefixValueSearch("?");

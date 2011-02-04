@@ -420,7 +420,14 @@ namespace GenericTrie
             {
                 if (Index == Values.Length)
                 {
-                    return true;
+                    if (this.Terminal)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
 
                 if (Children != null && container.WildCardIsSet && Values[Index].CompareTo(container.WildCard) == 0)
