@@ -309,17 +309,17 @@ namespace GenericTrie
                 {
                     if (this.Terminal)
                     {
-                        if (!PrefixSearch)
-                        {
+                        //if (!PrefixSearch)
+                        //{
                             Values.Add(this.Value);
-                        }
-                        else
-                        {
-                            Values.Add(this.Value);
-                            return Values;
-                        }
+                        //}
+                        //else
+                        //{
+                        //    Values.Add(this.Value);
+                        //    return Values;
+                        //}
                     }
-                    if (PrefixSearch)
+                    if (PrefixSearch && Children != null)
                     {
                         foreach (KeyValuePair<TToken, TrieNode> value in Children)
                         {
@@ -358,18 +358,10 @@ namespace GenericTrie
                 if (Index == Keys.Length)
                 {
                     if (this.Terminal)
-                    {
-                        if (!PrefixSearch)
-                        {
-                            matches.Add(Keys);
-                        }
-                        else
-                        {
-                            matches.Add(this.Word.ToArray());
-                            return matches;
-                        }
+                    {                       
+                        matches.Add(this.Word.ToArray());                       
                     }
-                    if (PrefixSearch)
+                    if (PrefixSearch && Children != null)
                     {
                         foreach (KeyValuePair<TToken, TrieNode> value in Children)
                         {
@@ -420,7 +412,7 @@ namespace GenericTrie
             {
                 if (Index == Values.Length)
                 {
-                    if (this.Terminal)
+                    if (Terminal)
                     {
                         return true;
                     }

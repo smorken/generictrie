@@ -17,12 +17,15 @@ namespace GenericTrie
             Trie.Add("ABED", 2);
             Trie.Add("ACED", 4);
             Trie.Add("BCED", 4);
+            Trie.Add("AB", 8);
             Trie.WildCard = '?';
-            bool derrp = Trie.ContainsKey("AB");
-
-            List<int> value = Trie["?B??"];
+     bool derrp = Trie.ContainsKey("AB");
+          //  Trie.GetMatchingKeys("AB");
+   //         List<int> value = Trie["?B??"];
             List<char[]> value2 = Trie.PrefixKeySearch("???D");
-            List<int> vla = Trie.PrefixValueSearch("?");
+            List<char[]> valeu3 = Trie.PrefixKeySearch("?");
+
+            List<int> vla = Trie.PrefixValueSearch("A");
             IntTrieTest test1 = new IntTrieTest(NodeContainerType.Dictionary, 5000, 5, 100, 26);
             string values = test1.Start();
 
